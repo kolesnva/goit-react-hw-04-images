@@ -1,60 +1,37 @@
 import PropTypes from 'prop-types';
-import { Component } from 'react';
 
-export class SearchBar extends Component {
-  state = {
-    query: '',
-    isDisabled: false,
-  };
+export function SearchBar({ onSearch }) {
+  const searchPics = event => {
+    const input = event.target.elements.input;
 
-  static propTypes = {
-    onSearch: PropTypes.func.isRequired,
-  };
-
-  componentDidUpdate(prevProps, prevState) {
-    const { query } = this.state;
-
-    if (query !== prevState.query) {
-      this.setState({ isDisabled: false });
-    }
-  }
-
-  submitSearch = event => {
     event.preventDefault();
 
-    const { onSearch } = this.props;
-    onSearch(this.state.query);
+    if (input.value !== '') {
+      return;
+    }
 
-    this.setState({ isDisabled: true });
+    onSearch(input.value);
   };
 
-  onChange = event => {
-    this.setState({ query: event.target.value.trim() });
-  };
+  return (
+    <header className="searchbar">
+      <form className="form" onSubmit={searchPics}>
+        <button type="submit" className="button">
+          <span className="button-label">Search</span>
+        </button>
 
-  render() {
-    return (
-      <header className="searchbar">
-        <form className="form">
-          <button
-            type="submit"
-            className="button"
-            disabled={this.state.isDisabled}
-          >
-            <span className="button-label">Search</span>
-          </button>
-
-          <input
-            className="input"
-            type="text"
-            autoComplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-            value={this.state.query}
-            onChange={this.onChange}
-          />
-        </form>
-      </header>
-    );
-  }
+        <input
+          className="input"
+          type="text"
+          autoComplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+        />
+      </form>
+    </header>
+  );
 }
+
+SearchBar.propTypes = {
+  onSearch: PropTypes.func,
+};

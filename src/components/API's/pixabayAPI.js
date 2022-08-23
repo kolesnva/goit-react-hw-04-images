@@ -24,11 +24,14 @@ export function fetchImages(query, page) {
     })
     .then(response => {
       return {
-        hits: response.hits.map(({ id, largeImageURL, webformatURL }) => ({
-          id,
-          largeImageURL,
-          webformatURL,
-        })),
+        hits: response.hits.map(
+          ({ id, largeImageURL, webformatURL, tags }) => ({
+            id,
+            largeImageURL,
+            webformatURL,
+            tags,
+          })
+        ),
         totalHits: response.totalHits,
       };
     });

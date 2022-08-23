@@ -4,38 +4,82 @@ import { SearchBar } from './Searchbar/Searchbar';
 
 export class App extends Component {
   state = {
-    query: '',
-    items: [],
-    page: 1,
     status: 'idle',
+    items: [],
+    inputValue: '',
+    currentPage: 1,
+    modalImage: '',
+    isModalShown: false,
+    totalHits: '',
+  };
+
+  getInputValue = inputValue => {
+    this.setState({
+      inputValue: inputValue,
+      items: [],
+      currentPage: 1,
+    });
   };
 
   componentDidUpdate(prevProps, prevState) {
-    const { query, items, page } = this.state;
+    const { inputValue, currentPage } = this.state;
 
-    if (query !== prevState.query || page !== prevState.page) {
-      this.setState({ status: 'pending' });
+    if (this.props.inputValue === '') {
+      return;
     }
 
-    fetchImages(query, page)
-      .then(newItems => {
-        this.setState(({ items }) => ({
-          items: [...items, ...newItems],
-        }));
-      })
-      .finally(() => {
-        this.setState({ status: 'idle' });
-      });
+    if (
+      prevState.inputValue !== inputValue ||
+      prevState.currentPage !== currentPage
+    ) {
+      this.fetchImages();
+    }
   }
 
-  handleSearch = query => {
-    this.setState({ query, page: 1, items: [] });
+  async fetchImages() {
+    const { inputValue, currentPage } = this.state;
+    this.setState({
+      status: 'pending',
+    });
+    try {
+      const { hits, totalHits } = await fetchImages(inputValue, currentPage);
+      this.setState(prevState => ({
+        items: [...prevState.items, ...hits],
+        totalHits: totalHits,
+        status: 'resolved',
+      }));
+    } catch (error) {
+      this.setState({
+        status: 'rejected',
+      });
+      alert();
+    }
+  }
+
+  incrementPage = () => {
+    this.setState(prevState => ({
+      currentPage: prevState.currentPage + 1,
+    }));
+  };
+
+  loadLargeImage = url => {
+    this.toggleModal();
+    this.setState({ modalImage: url });
+  };
+
+  toggleModal = () => {
+    this.setState(({ isModalShown }) => ({
+      isModalShown: !isModalShown,
+    }));
   };
 
   render() {
+    const { status, items, currentPage, modalImage, totalHits, isModalShown } =
+      this.state;
+    const lastHits = currentPage * 12 >= totalHits;
     return (
       <div>
-        <SearchBar onSearch={this.handleSearch}></SearchBar>
+        <SearchBar onSearch={this.getInputValue} />
       </div>
     );
   }
