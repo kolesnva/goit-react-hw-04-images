@@ -61,7 +61,7 @@ export class App extends Component {
   };
 
   render() {
-    const { items, status, currentImage, page } = this.state;
+    const { items, status, currentImage } = this.state;
 
     return (
       <div>
