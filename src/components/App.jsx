@@ -24,11 +24,12 @@ export class App extends Component {
         fetchImages(query, page).then(newItems => {
           this.setState(({ items }) => ({
             items: [...items, ...newItems],
+            status: 'resolved',
           }));
         });
       } catch (error) {
         this.setState({ status: 'rejected' });
-        console.log(error);
+        console.log('Your request was unsuccesfull');
       } finally {
         this.setState({ status: 'idle' });
       }
@@ -60,11 +61,14 @@ export class App extends Component {
   };
 
   render() {
-    const { items, status, currentImage } = this.state;
+    const { items, status, currentImage, page } = this.state;
 
     return (
       <div>
         <Searchbar onSearch={this.handleSearch} />
+        {items.length === 0 && status === 'resolved' && (
+          <div>There is nothing was found. Try to find something else</div>
+        )}
         {status === 'loading' && <Loader />}
         {items.length > 0 && (
           <>
@@ -72,6 +76,7 @@ export class App extends Component {
             <Button onClick={this.loadMore} />
           </>
         )}
+
         {status === 'modal' && (
           <Modal
             closeFunction={this.modalCloseHandle}

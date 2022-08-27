@@ -1,7 +1,9 @@
 import PropTypes from 'prop-types';
 import { Component } from 'react';
+import { createPortal } from 'react-dom';
 import { Overlay, ModalWindow } from './ModalStyled';
 
+const modalRoot = document.querySelector('#modal-root');
 export class Modal extends Component {
   static propTypes = {
     imageURL: PropTypes.string.isRequired,
@@ -26,12 +28,13 @@ export class Modal extends Component {
   render() {
     const { closeFunction, imageURL, tags } = this.props;
 
-    return (
+    return createPortal(
       <Overlay className="overlay" onClick={closeFunction}>
         <ModalWindow className="modal">
           <img src={imageURL} alt={tags} />
         </ModalWindow>
-      </Overlay>
+      </Overlay>,
+      modalRoot
     );
   }
 }
