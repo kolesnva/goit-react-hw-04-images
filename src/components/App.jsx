@@ -1,119 +1,83 @@
+import fetchImages from 'APIs/pixabayAPI';
 import { Component } from 'react';
 import { Searchbar } from './Searchbar/Searchbar';
-import { ImageGalleryItem } from './ImageGalleryItem/ImageGalleryItem';
 import { ImageGallery } from './ImageGallery/ImageGallery';
-import { Button } from './Button/Button';
-import { Modal } from './Modal/Modal';
 import { Loader } from './Loader/Loader';
-import API from "./API's/pixabayAPI";
-
+import { Modal } from './Modal/Modal';
+import { Button } from './Button/Button';
 export class App extends Component {
   state = {
-    images: [],
-    searchQuery: '',
-    status: 'idle',
+    query: '',
+    items: [],
     page: 1,
-    error: null,
-    largeImageURL: null,
+    status: 'idle',
+    currentImage: '',
   };
 
-  async componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.searchQuery !== this.state.searchQuery ||
-      this.state.page > prevState.page
-    ) {
-      this.setState({ status: 'pending' });
+  componentDidUpdate(_, prevState) {
+    const { query, page, items } = this.state;
+
+    if (query !== prevState.query || page !== prevState.page) {
+      this.setState({ status: 'loading' });
 
       try {
-        const { hits } = await API.fetchImages(
-          this.state.searchQuery,
-          this.state.page
-        );
-
-        const loadedImages = images => {
-          return images.map(({ tags, webformatURL, largeImageURL, id }) => ({
-            tags,
-            webformatURL,
-            largeImageURL,
-            id,
+        fetchImages(query, page).then(newItems => {
+          this.setState(({ items }) => ({
+            items: [...items, ...newItems],
           }));
-
-          this.setState(state => ({
-            images: state.images
-              ? [...this.state.images, ...loadedImages]
-              : loadedImages,
-          }));
-        };
+        });
       } catch (error) {
-        this.setState({ error });
+        this.setState({ status: 'rejected' });
+        console.log(error);
       } finally {
         this.setState({ status: 'idle' });
       }
-    }
 
-    if (prevState.images !== this.state.images) {
-      window.scrollBy({
-        top: document.body.scrollHeight,
-        behavior: 'smooth',
-      });
+      if (items !== prevState.items && page !== 1) {
+        window.scrollTo({
+          left: 0,
+          top: document.body.scrollHeight,
+          behavior: 'smooth',
+        });
+      }
     }
   }
 
-  handleSubmit = event => {
-    event.preventDefault();
-
-    const form = event.target.elements;
-    const query = form.name.value;
-
-    if (this.state.searchQuery === query || query.trim() === '') {
-      return;
-    }
-
-    this.setState(state => ({
-      images: [],
-      searchQuery: query,
-      page: 1,
-    }));
+  handleSearch = query => {
+    this.setState({ query, page: 1, items: [] });
   };
 
-  handleLoadMore = () => {
-    this.setState(state => ({ page: state.page + 1 }));
+  loadMore = () => {
+    this.setState(({ page }) => ({ page: page + 1 }));
   };
 
-  handleModalOpen = image => {
-    this.setState({ largeImageURL: image });
+  previewClickHandle = ({ image }) => {
+    this.setState({ currentImage: image, status: 'modal' });
   };
 
-  handleModalClose = () => {
-    this.setState({ largeImageURL: null });
+  modalCloseHandle = () => {
+    this.setState({ status: 'idle' });
   };
 
   render() {
-    const { images, error, largeImageURL, status } = this.state;
+    const { items, status, currentImage } = this.state;
 
     return (
       <div>
-        <Searchbar onSubmit={this.handleSubmit}></Searchbar>
-
-        {error && <div>Whoops, there's nothing was found by your request!</div>}
-
-        {images.length !== 0 && (
-          <ImageGallery
-            images={images}
-            onClick={this.handleModalOpen}
-          ></ImageGallery>
+        <Searchbar onSearch={this.handleSearch} />
+        {status === 'loading' && <Loader />}
+        {items.length > 0 && (
+          <>
+            <ImageGallery items={items} onClick={this.previewClickHandle} />
+            <Button onClick={this.loadMore} />
+          </>
         )}
-
-        {status === 'pending' && <Loader />}
-
-        {images.length !== 0 && (
-          <Button onClick={this.handleLoadMore} caption="Load more"></Button>
-        )}
-
-        {largeImageURL && (
-          <Modal onClose={this.handleModalClose}>
-            <img src={largeImageURL} alt="Image" />
-          </Modal>
+        {status === 'modal' && (
+          <Modal
+            closeFunction={this.modalCloseHandle}
+            imageURL={currentImage.imageURL}
+            tags={currentImage.tags}
+          />
         )}
       </div>
     );

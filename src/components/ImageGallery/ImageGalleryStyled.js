@@ -1,3 +1,3 @@
 import styled from 'styled-components';
 
-export const GalleryList = styled.ul``;
+export const Gallery = styled.ul``;

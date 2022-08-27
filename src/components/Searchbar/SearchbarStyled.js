@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 
 export const Header = styled.header``;
-export const SearchForm = styled.form``;
-export const SearchBtn = styled.button``;
-export const SearchInput = styled.input``;
+export const Form = styled.form``;
+export const SubmitBtn = styled.button``;
+export const BtnLabel = styled.span``;
+export const Input = styled.input``;
