@@ -15,23 +15,22 @@ export class App extends Component {
     currentImage: '',
   };
 
-  componentDidUpdate(_, prevState) {
+  async componentDidUpdate(_, prevState) {
     const { query, page } = this.state;
 
     if (query !== prevState.query || page !== prevState.page) {
       this.setState({ status: 'pending' });
 
       try {
-        fetchImages(query, page).then(newItems => {
+        await fetchImages(query, page).then(newItems => {
           this.setState(({ items }) => ({
             items: [...items, ...newItems],
+            status: 'resolved',
           }));
         });
       } catch (error) {
         this.setState({ status: 'rejected' });
         console.log('Your request was unsuccesfull');
-      } finally {
-        this.setState({ status: 'idle' });
       }
     }
   }
