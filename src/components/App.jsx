@@ -5,6 +5,7 @@ import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Loader } from './Loader/Loader';
 import { Modal } from './Modal/Modal';
 import { Button } from './Button/Button';
+import { SearchError } from './SearchError/SearchError';
 export class App extends Component {
   state = {
     query: '',
@@ -15,16 +16,15 @@ export class App extends Component {
   };
 
   componentDidUpdate(_, prevState) {
-    const { query, page, items } = this.state;
+    const { query, page, items, status } = this.state;
 
     if (query !== prevState.query || page !== prevState.page) {
-      this.setState({ status: 'loading' });
+      this.setState({ status: 'pending' });
 
       try {
         fetchImages(query, page).then(newItems => {
           this.setState(({ items }) => ({
             items: [...items, ...newItems],
-            status: 'resolved',
           }));
         });
       } catch (error) {
@@ -32,14 +32,6 @@ export class App extends Component {
         console.log('Your request was unsuccesfull');
       } finally {
         this.setState({ status: 'idle' });
-      }
-
-      if (items !== prevState.items && page !== 1) {
-        window.scrollTo({
-          left: 0,
-          top: document.body.scrollHeight,
-          behavior: 'smooth',
-        });
       }
     }
   }
@@ -66,17 +58,15 @@ export class App extends Component {
     return (
       <div>
         <Searchbar onSearch={this.handleSearch} />
-        {items.length === 0 && status === 'resolved' && (
-          <div>There is nothing was found. Try to find something else</div>
-        )}
-        {status === 'loading' && <Loader />}
+        {status === 'pending' && <Loader />}
+        {items.length === 0 && status === 'resolved' && <SearchError />}
+
         {items.length > 0 && (
           <>
             <ImageGallery items={items} onClick={this.previewClickHandle} />
-            <Button onClick={this.loadMore} />
           </>
         )}
-
+        {items.length >= 12 && <Button onClick={this.loadMore} />}
         {status === 'modal' && (
           <Modal
             closeFunction={this.modalCloseHandle}

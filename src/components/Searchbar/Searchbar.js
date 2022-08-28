@@ -1,6 +1,13 @@
 import PropTypes from 'prop-types';
 import { Component } from 'react';
-import { Form, BtnLabel, Header, Input, SubmitBtn } from './SearchbarStyled';
+import {
+  Form,
+  BtnLabel,
+  Header,
+  Input,
+  SubmitBtn,
+  SearchIcon,
+} from './SearchbarStyled';
 
 export class Searchbar extends Component {
   static propTypes = {
@@ -40,7 +47,8 @@ export class Searchbar extends Component {
       <Header className="searchbar">
         <Form className="form" onSubmit={this.submitQuery}>
           <SubmitBtn type="submit" className="button" disabled={disabled}>
-            <BtnLabel className="button-label">Search</BtnLabel>
+            <SearchIcon />
+            <BtnLabel className="button-label"></BtnLabel>
           </SubmitBtn>
 
           <Input
