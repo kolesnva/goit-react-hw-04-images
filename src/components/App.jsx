@@ -16,7 +16,7 @@ export class App extends Component {
   };
 
   componentDidUpdate(_, prevState) {
-    const { query, page, items, status } = this.state;
+    const { query, page } = this.state;
 
     if (query !== prevState.query || page !== prevState.page) {
       this.setState({ status: 'pending' });
