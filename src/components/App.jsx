@@ -65,7 +65,9 @@ export class App extends Component {
             <ImageGallery items={items} onClick={this.previewClickHandle} />
           </>
         )}
-        {items.length >= 12 && <Button onClick={this.loadMore} />}
+        {status === 'resolved' && items.length >= 12 && (
+          <Button onClick={this.loadMore} />
+        )}
         {status === 'modal' && (
           <Modal
             closeFunction={this.modalCloseHandle}
