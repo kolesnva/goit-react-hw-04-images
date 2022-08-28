@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import { ErrorContainer } from './SearchErrorStyled';
 
 export function SearchError() {
