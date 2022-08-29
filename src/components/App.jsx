@@ -57,7 +57,7 @@ export class App extends Component {
     return (
       <div>
         <Searchbar onSearch={this.handleSearch} />
-        {status === 'pending' && <Loader />}
+
         {items.length === 0 && status === 'resolved' && <SearchError />}
 
         {items.length > 0 && (
@@ -65,6 +65,7 @@ export class App extends Component {
             <ImageGallery items={items} onClick={this.previewClickHandle} />
           </>
         )}
+        {status === 'pending' && <Loader />}
         {status === 'resolved' && items.length >= 12 && (
           <Button onClick={this.loadMore} />
         )}
