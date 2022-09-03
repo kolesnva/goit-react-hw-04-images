@@ -1,82 +1,67 @@
 import fetchImages from 'APIs/pixabayAPI';
-import { Component } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Searchbar } from './Searchbar/Searchbar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Loader } from './Loader/Loader';
 import { Modal } from './Modal/Modal';
 import { Button } from './Button/Button';
 import { SearchError } from './SearchError/SearchError';
-export class App extends Component {
-  state = {
-    query: '',
-    items: [],
-    page: 1,
-    status: 'idle',
-    currentImage: '',
+
+export function App() {
+  const [query, setQuery] = useState('');
+  const [items, setItems] = useState([]);
+  const [page, setPage] = useState(0);
+  const [status, setStatus] = useState('idle');
+  const [currentImage, setCurrentImage] = useState('');
+
+  useEffect(() => {
+    if (!page) return;
+    setStatus('pending');
+    fetchImages(query, page).then(newItems => {
+      setItems(items => [...items, ...newItems]);
+      setStatus('resolved');
+    });
+  }, [query, page]);
+
+  const handleSearch = query => {
+    setQuery(query);
+    setPage(1);
+    setItems([]);
   };
 
-  async componentDidUpdate(_, prevState) {
-    const { query, page } = this.state;
-
-    if (query !== prevState.query || page !== prevState.page) {
-      this.setState({ status: 'pending' });
-
-      try {
-        await fetchImages(query, page).then(newItems => {
-          this.setState(({ items }) => ({
-            items: [...items, ...newItems],
-            status: 'resolved',
-          }));
-        });
-      } catch (error) {
-        this.setState({ status: 'rejected' });
-        console.log('Your request was unsuccesfull');
-      }
-    }
-  }
-
-  handleSearch = query => {
-    this.setState({ query, page: 1, items: [] });
+  const loadMore = () => {
+    setPage(page => page + 1);
   };
 
-  loadMore = () => {
-    this.setState(({ page }) => ({ page: page + 1 }));
+  const previewClickHandle = ({ image }) => {
+    setCurrentImage(image);
+    setStatus('modal');
   };
 
-  previewClickHandle = ({ image }) => {
-    this.setState({ currentImage: image, status: 'modal' });
+  const modalCloseHandle = () => {
+    setStatus('idle');
   };
 
-  modalCloseHandle = () => {
-    this.setState({ status: 'idle' });
-  };
+  return (
+    <div>
+      <Searchbar onSearch={handleSearch} />
 
-  render() {
-    const { items, status, currentImage } = this.state;
+      {items.length === 0 && status === 'resolved' && <SearchError />}
 
-    return (
-      <div>
-        <Searchbar onSearch={this.handleSearch} />
-
-        {items.length === 0 && status === 'resolved' && <SearchError />}
-
-        {items.length > 0 && (
-          <>
-            <ImageGallery items={items} onClick={this.previewClickHandle} />
-          </>
-        )}
-        {status === 'pending' && <Loader />}
-        {status === 'resolved' && items.length >= 12 && (
-          <Button onClick={this.loadMore} />
-        )}
-        {status === 'modal' && (
-          <Modal
-            closeFunction={this.modalCloseHandle}
-            imageURL={currentImage.imageURL}
-            tags={currentImage.tags}
-          />
-        )}
-      </div>
-    );
-  }
+      {items.length > 0 && (
+        <>
+          <ImageGallery items={items} onClick={previewClickHandle} />
+        </>
+      )}
+      {status === 'pending' && <Loader />}
+      {items.length >= 12 && <Button onClick={loadMore} />}
+      {status === 'modal' && (
+        <Modal
+          closeFunction={modalCloseHandle}
+          imageURL={currentImage.imageURL}
+          tags={currentImage.tags}
+        />
+      )}
+    </div>
+  );
 }
